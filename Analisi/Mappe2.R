@@ -11,7 +11,7 @@ library(readr)
 library(arrow)     # Per leggere i file parquet
 
 # ==========================================
-# CARICAMENTO DATI E MERGE AIRROI
+# Mi carico i file che servono e faccio il merge per le mappe
 # ==========================================
 
 # 1. Eventi
@@ -33,7 +33,7 @@ hotel_sf <- st_read("dati/hotel.geojson") %>% st_transform(4326)
 
 
 # ==========================================
-# PREPARAZIONE DATI E PULIZIA
+# Diamo una pulita veloce prima di graficare
 # ==========================================
 
 # Definiamo i quartieri lagunari (include Venezia, Lido, Murano, Burano, ecc.)
@@ -58,7 +58,7 @@ cat("Alloggi insulari filtrati:", nrow(airbnb_isole), "\n")
 
 
 # ==========================================
-# MAPPA INTERATTIVA GENERALE
+# Faccio una mappa interattiva giusto per farmi un idea
 # ==========================================
 
 icona_evento <- awesomeIcons(
@@ -93,7 +93,7 @@ print(mappa_venezia)
 
 
 # ==========================================
-# CONVERSIONE IN FORMATO SPAZIALE (SF) E BOUNDING BOXES
+# Devo convertire le robe in formato spaziale sennò non mappa nulla
 # ==========================================
 
 airbnb_sf <- st_as_sf(airbnb_isole, coords = c("longitude", "latitude"), crs = 4326)
@@ -118,7 +118,7 @@ eventi_lido_sud <- st_crop(eventi_sf, box_lido_sud)
 
 
 # ==========================================
-# MAPPE PER ZONE: AIRBNB TOTALI + EVENTI
+# Vediamo nel dettaglio le zone con gli eventi
 # ==========================================
 
 # -- EST --

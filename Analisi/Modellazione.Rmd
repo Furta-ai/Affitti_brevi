@@ -127,7 +127,7 @@ pset_slide <- list(  # par.settings per i grafici lattice
 )
 ```
 
-# 1. Preparazione Dati
+# 1. Preparazione Dati (sistemo le cose prima di partire)
 
 ```{r data_prep, include=FALSE}
 load("../dati/airbnb_pulito.Rdata")
@@ -146,9 +146,9 @@ tab_variabili_pro <- function(dati) {
   return(tab)
 }
 
-#### Imputazione valori mancanti
+#### Gestione dei NA (mi tocca tappare i buchi)
 
-# Raggruppa i quartieri con meno di 50 osservazioni in "Isole Minori"
+# Accorpo i quartieri piccolini altrimenti i modelli sbroccano in "Isole Minori"
 airbnb_pulito <- airbnb_pulito %>%
   mutate(neighbourhood_cleansed = fct_lump_min(
     neighbourhood_cleansed, 
@@ -156,7 +156,7 @@ airbnb_pulito <- airbnb_pulito %>%
     other_level = "Isole Minori"
   ))
 
-# Controlla il nuovo risultato
+# Faccio un check veloce per vedere se ha senso
 table(airbnb_pulito$neighbourhood_cleansed)
 
 airbnb_pulito <- airbnb_pulito %>%
@@ -175,7 +175,7 @@ airbnb_pulito <- airbnb_pulito %>%
     )
   )
 
-# Imputazione manule per i 5 host che non hanno la data dell'apetura dell'account
+# Fix manuale per quei 5 host senza data di iscrizione dell'apetura dell'account
 which(is.na(airbnb_pulito$host_since))
 
 airbnb_pulito[c(3088,4404,4418,4419,4421),]
@@ -192,10 +192,10 @@ airbnb_pulito <- airbnb_pulito %>%
     host_since = year(host_since)
   )
 
-# Controlla il risultato
+# Vediamo se è andata a buon fine
 head(airbnb_pulito$host_since)
 
-# Imputazione ai dati mancanti
+# Metto le pezze ai dati mancanti
 airbnb_pulito$host_since[c(3088,4404,4418,4419,4421)] = 2021
 
 # controllo
@@ -205,7 +205,7 @@ which(is.na(airbnb_pulito$host_since))
 # Metto 
 airbnb_pulito$host_response_time[c(3088,4404,4418,4419,4421)] = "within a day"
 
-# Controlliamo il risultato per essere sicuri che tutto torni
+# Doppio check per non avere sorprese
 table(airbnb_pulito$host_response_time, useNA = "always")
 
 # Dalla pagine dell'host vedo anche che è verificato
@@ -444,7 +444,7 @@ gam_list <- gam.scope(
   arg = df_list
 )
 
-# Definiamo il modello nullo di partenza
+# Parto dal modello base (nullo)
 # gam_null <- gam(y ~ 1, data = dati_stima_gam)
 
 # Selezione Stepwise (Forward/Backward) basata sull'AIC sull'insieme di Stima
@@ -482,7 +482,7 @@ if (file.exists(file_gam)) {
   saveRDS(m_gam_fin, file_gam)
 }
 
-# Previsione finale sull'insieme di Verifica
+# Calcolo le previsioni finali sul test set
 pred_gam <- predict(m_gam_fin, newdata = dati_verifica_gam)
 
 # Aggiornamento della tabella degli errori
@@ -580,7 +580,7 @@ best_mtry <- 17
 form_rf   <- as.formula(paste("y ~", paste(var_alberi, collapse = " + ")))
 file_rf   <- "../Modelli/modello_rf_finale_rfsrc.rds"
 
-# Cache: se il modello esiste lo carico, altrimenti lo addestro e lo salvo.
+# Se ho già addestrato il modello me lo carico, sennò ci metto una vita e lo rifaccio e lo salvo.
 if (file.exists(file_rf)) {
   m_rf_final <- readRDS(file_rf)
 } else {
@@ -603,7 +603,7 @@ errori_test <- bind_rows(errori_test, get_err_eur(pred_rf, dati_verifica$y) %>% 
 
 ## 4.2 Gradient Boosting
 ```{r Gradient Boosting Regolazione}
-# Preparazione Dati per GBM
+# Prendo i dati che mi servono per il GBM
 # Filtriamo le colonne per passare solo la 'y' e le variabili ad albero (lat/lon, niente sestieri)
 # Uso dataset NA: gbm gestisce NA natively via surrogate splits
 
@@ -751,7 +751,7 @@ grafico_tuning_gbm <- ggplot(tuning_par,
   tema_slide
 print(grafico_tuning_gbm)
 
-# Previsione finale sull'insieme di Verifica con il modello selezionato (1-SE)
+# Calcolo le previsioni finali sul test set con il modello selezionato (1-SE)
 pred_gbm <- predict(mod_gbm_final, newdata = dati_verifica_gbm, n.trees = opt_trees_final)
 
 # Aggiorno la tabella errori
@@ -1099,7 +1099,7 @@ cat("- Profondità (depth):", best_params_met$depth, "\n")
 cat("- Learning Rate (shrinkage):", best_params_met$shrinkage, "\n")
 cat("- Numero Alberi Ottimale (M):", best_params_met$best_M, "\n\n")
 
-# Addestramento Modello Finale su tutto l'insieme di stima (con salvataggio automatico)
+# Addestro il modello su tutto il train (e prego che non overfitti) di stima (con salvataggio automatico)
 nome_file_metboost <- "../Modelli/modello_metboost_finale_na_def1.rds"
 
 if (file.exists(nome_file_metboost)) {

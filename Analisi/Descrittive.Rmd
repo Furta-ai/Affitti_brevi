@@ -94,9 +94,9 @@ tab_variabili_pro <- function(dati) {
   return(tab)
 }
 
-#### Imputazione valori mancanti
+#### Gestione NA (vediamo di tappare questi buchi)
 
-# Raggruppa i quartieri con meno di 50 osservazioni in "Isole Minori"
+# Accorpo i gruppetti piccoli per evitare problemi ai plot in "Isole Minori"
 airbnb_pulito <- airbnb_pulito %>%
   mutate(neighbourhood_cleansed = fct_lump_min(
     neighbourhood_cleansed, 
@@ -104,7 +104,7 @@ airbnb_pulito <- airbnb_pulito %>%
     other_level = "Isole Minori"
   ))
 
-# Controlla il nuovo risultato
+# Controllo al volo se ha senso
 table(airbnb_pulito$neighbourhood_cleansed)
 
 airbnb_pulito <- airbnb_pulito %>%
@@ -123,7 +123,7 @@ airbnb_pulito <- airbnb_pulito %>%
     )
   )
 
-# Imputazione manule per i 5 host che non hanno la data dell'apetura dell'account
+# Aggiusto a mano questi 5 sfigati senza data dell'apetura dell'account
 which(is.na(airbnb_pulito$host_since))
 
 airbnb_pulito[c(3088,4404,4418,4419,4421),]
@@ -140,10 +140,10 @@ airbnb_pulito <- airbnb_pulito %>%
     host_since = year(host_since)
   )
 
-# Controlla il risultato
+# Check veloce
 head(airbnb_pulito$host_since)
 
-# Imputazione ai dati mancanti
+# Patcho i dati mancanti
 airbnb_pulito$host_since[c(3088,4404,4418,4419,4421)] = 2021
 
 # controllo
@@ -153,7 +153,7 @@ which(is.na(airbnb_pulito$host_since))
 # Metto 
 airbnb_pulito$host_response_time[c(3088,4404,4418,4419,4421)] = "within a day"
 
-# Controlliamo il risultato per essere sicuri che tutto torni
+# Facciamo un controllo che è meglio non fidarsi
 table(airbnb_pulito$host_response_time, useNA = "always")
 
 # Dalla pagine dell'host vedo anche che è verificato

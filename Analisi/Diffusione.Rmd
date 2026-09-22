@@ -73,7 +73,7 @@ load(here("dati", "airbnb_pulito.Rdata"))
 load(here("dati", "airroi_pulito.Rdata"))
 ```
 
-# Grafici esplorativi
+# Un po di grafici per esplorare la situazione
 
 L'analisi prende come unità di osservazione gli **host locali** (soggetti residenti
 nel Comune di Venezia che hanno aperto almeno un annuncio su Airbnb) ricostruendone
@@ -82,7 +82,7 @@ leggere il fenomeno su scale diverse: la curva cumulata rivela la forma struttur
 del processo, quella istantanea ne evidenzia la velocità in ogni singolo anno.
 
 ```{r cumulate - istantanee}
-# Dato base condiviso 
+# Mi preparo il dataframe di base 
 host_locale_base <- airbnb_pulito %>%
   mutate(data_iscrizione = as.Date(host_since, origin = "1970-01-01")) %>%
   filter(!is.na(data_iscrizione), host_is_local == 1)
@@ -308,7 +308,7 @@ non significativi, il GGM collassa al Bass standard e la complessità aggiuntiva
 non è giustificata dai dati. L'ACF dei residui è il criterio finale per
 scegliere tra i due.
 
-# Confronto tra modelli
+# Quale modello vince? Confrontiamoli
 
 I modelli stimati si confrontano su due indicatori calcolati sulle **serie
 istantanee** (più informative delle cumulate per valutare l'aderenza al
@@ -386,7 +386,7 @@ tutti significativi, costituendo il miglior compromesso tra fit e parsimonia.
 Il **GBM rettangolare** migliora il Bass in modo più modesto (R̃²_parz = 0.3781),
 ma mantiene la piena significatività statistica di tutti i coefficienti.
 
-# Validazione: stima su 2009–2021, verifica su 2022–2025
+# Vediamo come se la cava il modello out-of-sample sui dati 2009–2021, verifica su 2022–2025
 
 L'analisi in-sample (R̃²) valuta quanto i modelli aderiscono ai dati su
 cui sono stati stimati — una misura di fit, non di capacità previsiva.

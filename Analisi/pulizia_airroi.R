@@ -1,13 +1,13 @@
 load("dati/airbnb_pulito.Rdata")
 #pulizia airroi-->listings.parquet
-#QUESTO FILE E' DA GUARDARE CON IL FILE WORD DIZIONARIO_VARIABILI_AIRROI
+# IMPORTANTE: usa il file word DIZIONARIO_VARIABILI_AIRROI per capirci qualcosa qua dentro
 library(arrow)
 airroi <- read_parquet("dati/listings.parquet")
 
 View(airroi) #73 colonnex 300
 dim(airroi)
 
-#merge di airroi con airbnb pulito con chiave listing_id di airroi e chiave id del dataset airbnb_pulito
+# Faccio l.inner join tra airroi e airbnb pulito con chiave listing_id di airroi e chiave id del dataset airbnb_pulito
 # Tieni solo le righe presenti in entrambi, mantenendo solo le colonne di airroi
 airroi_filtrato <- airroi %>% 
   semi_join(airbnb_pulito, by = c("listing_id" = "id"))
@@ -20,7 +20,7 @@ dim(airroi_filtrato) #250 x 73
 airroi_pulito$listing_name<-airroi_pulito$description<-airroi_pulito$cover_photo_url<-airroi_pulito$photo_urls<-NULL
 
 #8. VARIABILI ULTIMI 90 GIORNI -----
-#elimino tutte perche non mi interessano solo gli ultimi 90g
+# Segate via tutte queste, non mi frega dei 90 giorni solo gli ultimi 90g
 colonne_90giorni<-grepl("l90d", colnames(airroi_pulito))
 airroi_pulito<- airroi_pulito[,!colonne_90giorni]
 View(airroi_pulito)
@@ -38,9 +38,9 @@ table(airroi_pulito$guests, useNA="ifany")
 # ==============================================================================
 # RECUPERO VALORI MANCANTI DI GUESTS DA AIRBNB_PULITO
 # ==============================================================================
-#VAI A CONTROLLARE ID NELL'ALTRO DATASET DI QUEGLI NA E IMPUTA IL NUMERO DI OSPITI SE LA' E' PRESENTE
+# Prendo l id e vado a pescarmi gli ospiti mancanti nell altro dataset DI QUEGLI NA E IMPUTA IL NUMERO DI OSPITI SE LA' E' PRESENTE
 
-# Identifichiamo le righe dove 'guests' è NA in airroi_pulito
+# Vedo un po dove mi manca il numero ospiti in airroi_pulito
 righe_na <- which(is.na(airroi_pulito$guests))
 options(scipen=999) #toglie forma esponenziale
 #Occhio che devo usare il dataset airroi_filtrato che contiene ancora gli identificativi
@@ -56,14 +56,14 @@ for(i in righe_na) {
     airroi_pulito$guests[i] <- valore_recuperato
   }
 }
-# Verifica quanti NA sono rimasti dopo il recupero diretto
+# Check per vedere quanti NA ci sono rimasti sul groppone
 cat("NA rimasti dopo il controllo nell'altro dataset:", sum(is.na(airroi_pulito$guests)), "\n")
 
 
 #beds############# 
 table(airroi_pulito$beds)
 table(airroi_pulito$beds,airroi_pulito$guests)
-#rimuovo?????si dai
+# Via, tolgo queste che non servono
 airroi_pulito$beds<-NULL
 
 #bedrooms ###########
@@ -80,7 +80,7 @@ for(i in righe_na) {
     airroi_pulito$bedrooms[i] <- valore_recuperato
   }
 }
-# Verifica quanti NA sono rimasti dopo il recupero diretto
+# Check per vedere quanti NA ci sono rimasti sul groppone
 cat("NA rimasti dopo il controllo nell'altro dataset:", sum(is.na(airroi_pulito$bedrooms)), "\n")
 
 ##  righe_na
@@ -89,7 +89,7 @@ cat("NA rimasti dopo il controllo nell'altro dataset:", sum(is.na(airroi_pulito$
 ##  airbnb_pulito[airbnb_pulito$id == "1581387", "bedrooms"] <- 1
 ##  rifaccio il ciclo for
 
-#crea modalita 4 o superiore e accorpo 0 e 1
+# Sistemo i numeri esagerati e raggruppo quelli bassi
 airroi_pulito$bedrooms <- cut(
   airroi_pulito$bedrooms,
   breaks = c(-Inf, 1, 2, 3, Inf),
@@ -111,7 +111,7 @@ for(i in righe_na) {
     airroi_pulito$baths[i] <- valore_recuperato
   }
 }
-# Verifica quanti NA sono rimasti dopo il recupero diretto
+# Check per vedere quanti NA ci sono rimasti sul groppone
 cat("NA rimasti dopo il controllo nell'altro dataset:", sum(is.na(airroi_pulito$baths)), "\n")
 
 

@@ -35,7 +35,7 @@ eventi_mappa <- eventi %>%
 # Sostituisci il nome con il file che scaricherai da Inside Airbnb
 airbnb <- read_csv("../dati/listings.csv")
 
-# 1. Definiamo un vettore con tutti e solo i quartieri insulari
+# 1. Mi metto da parte solo i quartieri delle isole vere e proprie
 quartieri_lagunari <- c(
   # Centro Storico (I 6 Sestieri + Sant'Elena e Tronchetto)
   "San Marco", "San Polo", "Santa Croce", "Dorsoduro", "Cannaregio", "Castello", 
@@ -56,7 +56,7 @@ quartieri_lagunari <- c(
 airbnb_isole <- airbnb %>%
   filter(neighbourhood_cleansed %in% quartieri_lagunari)
 
-# Controlliamo quanti alloggi abbiamo "salvato" e quanti ne abbiamo scartati
+# Faccio un sanity check per vedere quanti ne abbiamo persi
 cat("Alloggi totali prima del filtro:", nrow(airbnb), "\n")
 cat("Alloggi insulari dopo il filtro:", nrow(airbnb_isole), "\n")
 ```
@@ -109,8 +109,8 @@ mappa_venezia
 
 # Preparazione Dati e Pulizia del Prezzo
 ```{r}
-# Il prezzo di Airbnb è spesso una stringa es: "$150.00". 
-# Lo puliamo rimuovendo il dollaro e le virgole, e lo trasformiamo in numero.
+# Airbnb mi passa il prezzo come stringa (maledetti dollari): "$150.00". 
+# Pulisco via simboli e virgole e converto in numerico vero e proprio
 airbnb_isole <- airbnb_isole %>%
   mutate(
     price_num = as.numeric(gsub("[\\$,]", "", price)),
@@ -127,12 +127,12 @@ airbnb_isole <- airbnb_isole %>%
 
 ## EST
 ```{r warning=FALSE}
-# 1. Creiamo il "recinto" (Bounding Box) con le tue coordinate
+# 1. Costruisco il bounding box con le coordinate
 box_est <- st_bbox(c(xmin = 12.330, ymin = 45.425, xmax = 12.370, ymax = 45.440), crs = st_crs(4326))
 airbnb_sf <- st_as_sf(airbnb_isole, coords = c("longitude", "latitude"), crs = 4326)
 eventi_sf <- st_as_sf(eventi_mappa, coords = c("Longitudine", "Latitudine"), crs = 4326)
 
-# 2. Ritagliamo i dati: teniamo SOLO quelli dentro il recinto
+# 2. Taglio via i dati fuori dal recinto
 airbnb_est <- st_crop(airbnb_sf, box_est)
 eventi_est <- st_crop(eventi_sf, box_est)
 

@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 ---
 
-# 0. Setup e dati
+# 0. Carico le librerie e i dati di partenza
 
 ```{r librerie}
 library(tidyverse)
@@ -102,7 +102,7 @@ plot_regole_lollipop <- function(regole, n = 15, titolo = NULL, sottotitolo = NU
 
 ---
 
-# 1. Preparazione delle transazioni
+# 1. Prendo i dati e cerco di farci uscire le transazioni
 
 ## 1.1 Parsing delle amenities
 
@@ -359,7 +359,7 @@ ggsave("grafici_trasparenti/top25_amenities.png", plot = p_top25, width = 11, he
 ```
 
 ```{r amenities-differenzianti}
-# Fascia "differenziante": presente nel 5–40% degli annunci
+# Guardo le robe che ci sono nel 5-40% degli annunci (quelle interessanti)
 # Né commodity (>80%) né rarità (<5%)
 differenzianti <- freq_tab %>%
   filter(between(quota, 0.05, 0.40)) %>%
@@ -394,7 +394,7 @@ summary(trans)
 
 ---
 
-# 2. Regole associative — visione d'insieme
+# 2. Tiriamo fuori un po di regole per capire cosa c è dentro
 
 ## 2.1 Apriori: tutti gli annunci
 
@@ -411,7 +411,7 @@ cat("Regole trovate:", length(regole), "\n")
 inspect(head(sort(regole, by = "lift"), n = 10))
 ```
 
-## 2.2 Regole con lift elevato (le più "sorprendenti")
+## 2.2 Le regole con lift più alto (quelle meno banali insomma)
 
 ```{r regole-lift}
 # Lift > 1 → A e B compaiono INSIEME più spesso di quanto ci si aspetterebbe
